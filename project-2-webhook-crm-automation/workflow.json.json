@@ -1,0 +1,443 @@
+{
+  "name": "Webhook CRM Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "tableId": "pipeline_logs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "run_id",
+              "fieldValue": "={{ $json.run_id }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "={{ $json.status }}"
+            },
+            {
+              "fieldId": "records_received",
+              "fieldValue": "={{ $json.records_received }}"
+            },
+            {
+              "fieldId": "records_created",
+              "fieldValue": "={{ $json.records_created }}"
+            },
+            {
+              "fieldId": "records_failed",
+              "fieldValue": "={{ $json.records_failed }}"
+            },
+            {
+              "fieldId": "error_message",
+              "fieldValue": "={{ $json.error_message }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        -32
+      ],
+      "id": "5afc017d-e376-4ad0-a79c-48301886e3e3",
+      "name": "Save Workflow Log",
+      "credentials": {
+        "supabaseApi": {
+          "id": "5vzgJSM72IkWIWjQ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst runId = $execution.id;\nconst now = new Date().toISOString();\n\nreturn [\n  {\n    json: {\n      run_id: runId,\n      status: \"success\",\n\n      records_received: items.length,\n      records_created: items.length,\n      records_failed: 0,\n\n      error_message: null,\n\n      started_at: now,\n      completed_at: now\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        -32
+      ],
+      "id": "b76b73e0-e031-4bd3-9e12-ccf564164955",
+      "name": "Prepare Workflow Log"
+    },
+    {
+      "parameters": {
+        "chatId": "8086355337",
+        "text": "=🚨 New Lead Received!\n\nName: {{ $('Save New Lead').item.json.name }}\nEmail: {{ $('Save New Lead').item.json.email }}\nPhone: {{ $('Save New Lead').item.json.phone }}\nProperty:{{ $('Save New Lead').item.json.property }}\n\nPlease follow up with the lead.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1568,
+        -32
+      ],
+      "id": "c927d9b7-6f5d-4def-aae8-755ad70f0481",
+      "name": "Notify Sales Team",
+      "webhookId": "ff75f29d-6f2e-4845-9c36-11e59ebe45a7",
+      "credentials": {
+        "telegramApi": {
+          "id": "cyITcvucoHCsPBiF",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "mdsojibhosen1212@gmail.com",
+        "additionalFields": {
+          "firstName": "={{ $json.name }}",
+          "phoneNumber": "={{ $json.phone }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        -32
+      ],
+      "id": "4753b8d3-cab3-4cc4-a952-2980a7fb6339",
+      "name": "Create or Update CRM Contact",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "UoZSZwPORBw32Woz",
+          "name": "HubSpot account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "tableId": "leads for crm project",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $('Validate Lead').item.json.name }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $('Validate Lead').item.json.email }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $('Validate Lead').item.json.phone }}"
+            },
+            {
+              "fieldId": "property",
+              "fieldValue": "={{ $('Validate Lead').item.json.propertry }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('Validate Lead').item.json.message }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        -32
+      ],
+      "id": "1071beb2-c6b6-4272-9895-b5b5dca82d3f",
+      "name": "Save New Lead",
+      "credentials": {
+        "supabaseApi": {
+          "id": "5vzgJSM72IkWIWjQ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c4919d20-8152-4b2c-b094-747c06eb935f",
+              "leftValue": "={{ $('Validate Lead').item.json.email }}",
+              "rightValue": "={{ $json.email }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "5e7de028-584c-45f0-9719-ba869c7e3be7",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "={{ $('Validate Lead').item.json.phone }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -32
+      ],
+      "id": "5a51e90a-d2be-4bf9-b68c-b3b25eff8e65",
+      "name": "Lead Exists?"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "leads for crm project",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $json.email }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -32
+      ],
+      "id": "b38a9338-eb71-4ed3-bedd-ef93b990192f",
+      "name": "Check Duplicate Lead",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "5vzgJSM72IkWIWjQ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d5c9c516-a04b-4e19-8543-9c5af5fce41a",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "={{ $json.email }}",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "29957e84-25c0-44e9-ac3f-46b8deb2ae9f",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "={{ $json.phone }}",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "32bbff60-3890-434c-a599-c4c34f85d41a",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "7af8e755-f245-42d5-a707-a1f8e4162fcf",
+              "leftValue": "={{ $json.propertry }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "c3716108-c1ed-4414-8db1-f2e3de431f24",
+      "name": "Validate Lead"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n \"name\":\"{{ $json.body.name }}\",\n \"email\":\"{{ $json.body.email }}\",\n \"phone\":\"{{ $json.body.phone }}\",\n\"message\":\"{{ $json.body.message }}\",\n\"propertry\":\"{{ $json.body.property }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "b4058906-e11c-4c70-b4b7-36fed06009ba",
+      "name": "Prepare Lead Data"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "real-estate-lead",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -32
+      ],
+      "id": "efbdb371-6e24-4610-a46b-44c74b37e320",
+      "name": "Receive Lead",
+      "webhookId": "8895af66-ab5b-4a27-a8f6-ff7400d34793"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Prepare Workflow Log": {
+      "main": [
+        [
+          {
+            "node": "Save Workflow Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Sales Team": {
+      "main": [
+        [
+          {
+            "node": "Prepare Workflow Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or Update CRM Contact": {
+      "main": [
+        [
+          {
+            "node": "Notify Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save New Lead": {
+      "main": [
+        [
+          {
+            "node": "Create or Update CRM Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Exists?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Save New Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate Lead": {
+      "main": [
+        [
+          {
+            "node": "Lead Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Lead": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicate Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Validate Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Lead": {
+      "main": [
+        [
+          {
+            "node": "Prepare Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fc642e47-cb7e-4026-9164-82489e53e2da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "85756932db08f8ceefb4b1f7a44566740df7ec2da7602fe52455e31a3c40472d"
+  },
+  "id": "0IayBZdjNsqBALwZ",
+  "tags": []
+}
